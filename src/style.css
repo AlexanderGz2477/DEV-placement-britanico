@@ -1,0 +1,12 @@
+#faceCanvas {
+    position: relative;
+    z-index:2;
+    top: -310px;
+    height: 310px;
+    overflow: hidden;
+}
+#video-registro{
+    border-radius: 15px;
+    z-index:1;
+    overflow: hidden;
+}
