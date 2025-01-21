@@ -265,9 +265,11 @@ export default {
                 icon: "warning",
                 text: "Procure seguir las indicaciones",
                 confirmButtonText: "Seguir con el placement",
+                allowOutsideClick: false,
+                allowEscapeKey: false,
             }).then((result) => {
                 if (result.isConfirmed) {
-                    window.location.reload();
+                    //window.location.reload();
                 }
             })
 
