@@ -9,6 +9,8 @@
 
         <v-col cols="6" align="center">
 
+            <v-select v-model="categoria" label="Select" :items="['Kids', 'General']"></v-select>
+
             <br>
             <div style="position: relative; width: 420px; height: 310px; overflow: hidden;">
                 <video id="video-registro" autoplay width="420" height="310" style="border-radius: 15px;"></video>
@@ -16,7 +18,6 @@
             </div>
             <br>
             <!-- <v-progress-linear :model-value="iProgressBar" bg-color="success" color="error"></v-progress-linear> -->
-
             <canvas style="display:none;" id="canvas-captura-photo" width="420" height="310">
                 <img src="" id="photo" alt="photo" />
             </canvas>
@@ -42,6 +43,7 @@ import { BACKEND_URL } from '../../config'
 export default {
     data() {
         return {
+            categoria: "",
             mostrarInstrucciones: true,
             mostrarRegistrar: true,
             video: null,
@@ -54,6 +56,7 @@ export default {
             fotoURL: null,
             labelDuplicado: null,
             NombrelabelDuplicado: null,
+
         };
     },
     beforeUnmount() {
@@ -109,35 +112,35 @@ export default {
             const photo = document.getElementById("photo");
             let context = canvas.getContext("2d");
 
-            let i = 0;
-            while (i < 21) {
-                // Esperar medio segundo antes de tomar una foto
-                /* await this.sleep(500); */
-                // Tomar una foto
-                context.drawImage(this.video, 0, 0, canvas.width, canvas.height);
-                let imgAsBase64String = canvas.toDataURL("image/png");
-                photo.setAttribute("src", imgAsBase64String);
+            // Esperar medio segundo antes de tomar una foto
+            /* await this.sleep(500); */
+            // Tomar una foto
+            context.drawImage(this.video, 0, 0, canvas.width, canvas.height);
+            let imgAsBase64String = canvas.toDataURL("image/png");
+            photo.setAttribute("src", imgAsBase64String);
 
-                // Procesar la foto, obtener los descriptors, etc.  
-                const img = await faceapi.fetchImage(imgAsBase64String);
-                const detections = await faceapi.detectSingleFace(img, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.9 })).withFaceLandmarks().withFaceDescriptor();
+            // Procesar la foto, obtener los descriptors, etc.  
+            const img = await faceapi.fetchImage(imgAsBase64String);
+            const detections = await faceapi.detectSingleFace(img, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.9 })).withFaceLandmarks().withFaceDescriptor();
 
-                const cuadro = document.getElementById('faceCanvas');
-                const displaySize = { width: this.video.width, height: this.video.height };
-                faceapi.matchDimensions(cuadro, displaySize);
+            const cuadro = document.getElementById('faceCanvas');
+            const displaySize = { width: this.video.width, height: this.video.height };
+            faceapi.matchDimensions(cuadro, displaySize);
 
-                //const detection = await faceapi.detectAllFaces(this.video, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.9 })).withFaceLandmarks().withFaceExpressions().withFaceDescriptors();
-                const detection = await faceapi.detectAllFaces(this.video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceExpressions().withFaceDescriptors().withAgeAndGender()
-                // Configura el color del trazo en verde
-                //console.log(detection);
+            //const detection = await faceapi.detectAllFaces(this.video, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.9 })).withFaceLandmarks().withFaceExpressions().withFaceDescriptors();
+            const detection = await faceapi.detectAllFaces(this.video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceExpressions().withFaceDescriptors().withAgeAndGender()
+            // Configura el color del trazo en verde
+            //console.log(detection);
+
+            if (this.categoria == "Kids") {
                 if (typeof detection != "undefined") {
                     if (Object.keys(detection).length > 1) {
                         this.SAMasRostrosDetectados();
-                        break;
+                        //break;
                         // this.$router.push('/registrar');
                     } else {
                         const resizedDetection = faceapi.resizeResults(detection, displaySize);
-                        console.log(detection);
+                        //console.log(detection);
                         // Clear previous drawings
                         cuadro.getContext('2d').clearRect(0, 0, cuadro.width, cuadro.height);
                         const contexto = cuadro.getContext('2d');
@@ -148,19 +151,62 @@ export default {
                         //faceapi.draw.drawFaceLandmarks(cuadro, resizedDetection);
                         //faceapi.draw.drawFaceExpressions(cuadro, resizedDetection);
                         //faceapi.draw.drawFaceExpressions(cuadro, resizedDetection)
+                        console.log(Math.round(detection.age))
+
+
                         resizedDetection.forEach(detection => {
+                            const box = detection.detection.box
+
+                            if (Math.round(detection.age) > 12) {
+                                const drawBox = new faceapi.draw.DrawBox(box, { label: " se requiere menor de edad " })
+                                drawBox.draw(cuadro)
+
+                            } else {
+                                const drawBox = new faceapi.draw.DrawBox(box, { label: Math.round(detection.age) + " años " })
+                                drawBox.draw(cuadro)
+                            }
+
+                        })
+
+                    }
+                }
+            } else if (this.categoria == "General") {
+
+                if (typeof detection != "undefined") {
+                    if (Object.keys(detection).length > 1) {
+                        this.SAMasRostrosDetectados();
+                        //break;
+                        // this.$router.push('/registrar');
+                    } else {
+                        const resizedDetection = faceapi.resizeResults(detection, displaySize);
+                        //console.log(detection);
+                        // Clear previous drawings
+                        cuadro.getContext('2d').clearRect(0, 0, cuadro.width, cuadro.height);
+                        const contexto = cuadro.getContext('2d');
+                        contexto.clearRect(0, 0, cuadro.width, cuadro.height);
+
+
+                        //faceapi.draw.drawDetections(cuadro, resizedDetection);
+                        faceapi.draw.drawFaceLandmarks(cuadro, resizedDetection);
+                        //faceapi.draw.drawFaceExpressions(cuadro, resizedDetection);
+
+                        /* resizedDetection.forEach(detection => {
                             const box = detection.detection.box
                             const drawBox = new faceapi.draw.DrawBox(box, { label: Math.round(detection.age) + " años " })
                             drawBox.draw(cuadro)
-                        })
+                        }) */
                     }
                 }
 
-                // Draw a square around each detected face
-                //faceapi.draw.drawDetections(cuadro, resizedDetections);
-
-
             }
+
+
+            this.tomarFotosAutomaticamente()
+            // Draw a square around each detected face
+            //faceapi.draw.drawDetections(cuadro, resizedDetections);
+
+
+
         },
 
         sleep(ms) {
