@@ -126,8 +126,8 @@ export default {
                 const displaySize = { width: this.video.width, height: this.video.height };
                 faceapi.matchDimensions(cuadro, displaySize);
 
-                const detection = await faceapi.detectAllFaces(this.video, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.9 })).withFaceLandmarks().withFaceExpressions().withFaceDescriptors();
-
+                //const detection = await faceapi.detectAllFaces(this.video, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.9 })).withFaceLandmarks().withFaceExpressions().withFaceDescriptors();
+                const detection = await faceapi.detectAllFaces(this.video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceExpressions().withFaceDescriptors().withAgeAndGender()
                 // Configura el color del trazo en verde
                 //console.log(detection);
                 if (typeof detection != "undefined") {
@@ -145,8 +145,14 @@ export default {
 
 
                         //faceapi.draw.drawDetections(cuadro, resizedDetection);
-                        faceapi.draw.drawFaceLandmarks(cuadro, resizedDetection);
-                        //faceapi.draw.drawFaceExpressions(cuadro,resizedDetection);
+                        //faceapi.draw.drawFaceLandmarks(cuadro, resizedDetection);
+                        //faceapi.draw.drawFaceExpressions(cuadro, resizedDetection);
+                        //faceapi.draw.drawFaceExpressions(cuadro, resizedDetection)
+                        resizedDetection.forEach(detection => {
+                            const box = detection.detection.box
+                            const drawBox = new faceapi.draw.DrawBox(box, { label: Math.round(detection.age) + " años " })
+                            drawBox.draw(cuadro)
+                        })
                     }
                 }
 
