@@ -115,93 +115,95 @@ export default {
             // Esperar medio segundo antes de tomar una foto
             /* await this.sleep(500); */
             // Tomar una foto
-            context.drawImage(this.video, 0, 0, canvas.width, canvas.height);
-            let imgAsBase64String = canvas.toDataURL("image/png");
-            photo.setAttribute("src", imgAsBase64String);
+            let i = 1;
+            while (i > 0) {
+                context.drawImage(this.video, 0, 0, canvas.width, canvas.height);
+                let imgAsBase64String = canvas.toDataURL("image/png");
+                photo.setAttribute("src", imgAsBase64String);
 
-            // Procesar la foto, obtener los descriptors, etc.  
-            const img = await faceapi.fetchImage(imgAsBase64String);
-            const detections = await faceapi.detectSingleFace(img, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.9 })).withFaceLandmarks().withFaceDescriptor();
+                // Procesar la foto, obtener los descriptors, etc.  
+                const img = await faceapi.fetchImage(imgAsBase64String);
+                const detections = await faceapi.detectSingleFace(img, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.9 })).withFaceLandmarks().withFaceDescriptor();
 
-            const cuadro = document.getElementById('faceCanvas');
-            const displaySize = { width: this.video.width, height: this.video.height };
-            faceapi.matchDimensions(cuadro, displaySize);
+                const cuadro = document.getElementById('faceCanvas');
+                const displaySize = { width: this.video.width, height: this.video.height };
+                faceapi.matchDimensions(cuadro, displaySize);
 
-            //const detection = await faceapi.detectAllFaces(this.video, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.9 })).withFaceLandmarks().withFaceExpressions().withFaceDescriptors();
-            const detection = await faceapi.detectAllFaces(this.video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceExpressions().withFaceDescriptors().withAgeAndGender()
-            // Configura el color del trazo en verde
-            //console.log(detection);
-
-            if (this.categoria == "Kids") {
-                if (typeof detection != "undefined") {
-                    if (Object.keys(detection).length > 1) {
-                        this.SAMasRostrosDetectados();
-                        //break;
-                        // this.$router.push('/registrar');
-                    } else {
-                        const resizedDetection = faceapi.resizeResults(detection, displaySize);
-                        //console.log(detection);
-                        // Clear previous drawings
-                        cuadro.getContext('2d').clearRect(0, 0, cuadro.width, cuadro.height);
-                        const contexto = cuadro.getContext('2d');
-                        contexto.clearRect(0, 0, cuadro.width, cuadro.height);
+                //const detection = await faceapi.detectAllFaces(this.video, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.9 })).withFaceLandmarks().withFaceExpressions().withFaceDescriptors();
+                const detection = await faceapi.detectAllFaces(this.video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceExpressions().withFaceDescriptors().withAgeAndGender()
+                // Configura el color del trazo en verde
+                //console.log(detection);
 
 
-                        //faceapi.draw.drawDetections(cuadro, resizedDetection);
-                        //faceapi.draw.drawFaceLandmarks(cuadro, resizedDetection);
-                        //faceapi.draw.drawFaceExpressions(cuadro, resizedDetection);
-                        //faceapi.draw.drawFaceExpressions(cuadro, resizedDetection)
-                        console.log(Math.round(detection.age))
+                if (this.categoria == "Kids") {
+                    if (typeof detection != "undefined") {
+                        if (Object.keys(detection).length > 1) {
+                            this.SAMasRostrosDetectados();
+                            //break;
+                            // this.$router.push('/registrar');
+                        } else {
+                            const resizedDetection = faceapi.resizeResults(detection, displaySize);
+                            //console.log(detection);
+                            // Clear previous drawings
+                            cuadro.getContext('2d').clearRect(0, 0, cuadro.width, cuadro.height);
+                            const contexto = cuadro.getContext('2d');
+                            contexto.clearRect(0, 0, cuadro.width, cuadro.height);
 
 
-                        resizedDetection.forEach(detection => {
-                            const box = detection.detection.box
+                            //faceapi.draw.drawDetections(cuadro, resizedDetection);
+                            //faceapi.draw.drawFaceLandmarks(cuadro, resizedDetection);
+                            //faceapi.draw.drawFaceExpressions(cuadro, resizedDetection);
+                            //faceapi.draw.drawFaceExpressions(cuadro, resizedDetection)
+                            console.log(Math.round(detection.age))
 
-                            if (Math.round(detection.age) > 12) {
-                                const drawBox = new faceapi.draw.DrawBox(box, { label: " se requiere menor de edad " })
-                                drawBox.draw(cuadro)
 
-                            } else {
+                            resizedDetection.forEach(detection => {
+                                const box = detection.detection.box
+
+                                if (Math.round(detection.age) > 12) {
+                                    const drawBox = new faceapi.draw.DrawBox(box, { label: " se requiere menor de edad " })
+                                    drawBox.draw(cuadro)
+
+                                } else {
+                                    const drawBox = new faceapi.draw.DrawBox(box, { label: Math.round(detection.age) + " años " })
+                                    drawBox.draw(cuadro)
+                                }
+
+                            })
+
+                        }
+                    }
+                } else if (this.categoria == "General") {
+
+                    if (typeof detection != "undefined") {
+                        if (Object.keys(detection).length > 1) {
+                            this.SAMasRostrosDetectados();
+                            //break;
+                            // this.$router.push('/registrar');
+                        } else {
+                            const resizedDetection = faceapi.resizeResults(detection, displaySize);
+                            //console.log(detection);
+                            // Clear previous drawings
+                            cuadro.getContext('2d').clearRect(0, 0, cuadro.width, cuadro.height);
+                            const contexto = cuadro.getContext('2d');
+                            contexto.clearRect(0, 0, cuadro.width, cuadro.height);
+
+
+                            //faceapi.draw.drawDetections(cuadro, resizedDetection);
+                            faceapi.draw.drawFaceLandmarks(cuadro, resizedDetection);
+                            //faceapi.draw.drawFaceExpressions(cuadro, resizedDetection);
+
+                            /* resizedDetection.forEach(detection => {
+                                const box = detection.detection.box
                                 const drawBox = new faceapi.draw.DrawBox(box, { label: Math.round(detection.age) + " años " })
                                 drawBox.draw(cuadro)
-                            }
-
-                        })
-
+                            }) */
+                        }
                     }
+
                 }
-            } else if (this.categoria == "General") {
-
-                if (typeof detection != "undefined") {
-                    if (Object.keys(detection).length > 1) {
-                        this.SAMasRostrosDetectados();
-                        //break;
-                        // this.$router.push('/registrar');
-                    } else {
-                        const resizedDetection = faceapi.resizeResults(detection, displaySize);
-                        //console.log(detection);
-                        // Clear previous drawings
-                        cuadro.getContext('2d').clearRect(0, 0, cuadro.width, cuadro.height);
-                        const contexto = cuadro.getContext('2d');
-                        contexto.clearRect(0, 0, cuadro.width, cuadro.height);
-
-
-                        //faceapi.draw.drawDetections(cuadro, resizedDetection);
-                        faceapi.draw.drawFaceLandmarks(cuadro, resizedDetection);
-                        //faceapi.draw.drawFaceExpressions(cuadro, resizedDetection);
-
-                        /* resizedDetection.forEach(detection => {
-                            const box = detection.detection.box
-                            const drawBox = new faceapi.draw.DrawBox(box, { label: Math.round(detection.age) + " años " })
-                            drawBox.draw(cuadro)
-                        }) */
-                    }
-                }
-
             }
 
-
-            this.tomarFotosAutomaticamente()
             // Draw a square around each detected face
             //faceapi.draw.drawDetections(cuadro, resizedDetections);
 
